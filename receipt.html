@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Receipt</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #000;
+    color: #fff;
+}
+
+header {
+    background: #111;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: gold;
+    border-bottom: 2px solid gold;
+}
+
+.container {
+    padding: 15px;
+}
+
+.receipt {
+    background: #111;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid gold;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+}
+
+.total {
+    margin-top: 10px;
+    font-size: 20px;
+    text-align: right;
+    color: gold;
+}
+
+.success {
+    text-align: center;
+    color: lightgreen;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    background: gold;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 6px;
+}
+</style>
+</head>
+
+<body>
+
+<header>🧾 Order Receipt</header>
+
+<div class="container">
+
+    <div class="receipt">
+        <div class="success">✅ Order Placed Successfully!</div>
+
+        <div id="items"></div>
+
+        <div class="total">
+            Total: $<span id="total">0</span>
+        </div>
+    </div>
+
+    <button onclick="goHome()">Back to Shop</button>
+
+</div>
+
+<script>
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+let itemsDiv = document.getElementById("items");
+let total = 0;
+
+cart.forEach(item => {
+    total += item.price;
+
+    itemsDiv.innerHTML += `
+    <div class="item">
+        <span>${item.name}</span>
+        <span>$${item.price}</span>
+    </div>
+    `;
+});
+
+document.getElementById("total").innerText = total;
+
+// clear cart after showing receipt
+localStorage.removeItem("cart");
+
+function goHome(){
+    window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

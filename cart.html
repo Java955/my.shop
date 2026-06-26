@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Cart</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #000;
+    color: #fff;
+}
+
+header {
+    background: #111;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: gold;
+    border-bottom: 2px solid gold;
+}
+
+.container {
+    padding: 15px;
+}
+
+.cart-item {
+    background: #111;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    border-radius: 8px;
+}
+
+button {
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.remove {
+    background: red;
+    color: white;
+}
+
+.whatsapp-btn {
+    background: #25D366;
+    color: white;
+    width: 100%;
+    margin-top: 10px;
+    font-size: 18px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>🛒 My Cart</header>
+
+<div class="container">
+
+    <!-- CART ITEMS -->
+    <div id="cart"></div>
+
+    <!-- CUSTOMER INPUTS -->
+    <input id="customerName" type="text" placeholder="Your Name">
+    <input id="customerPhone" type="text" placeholder="Your Phone Number">
+    <input id="customerAddress" type="text" placeholder="Delivery Address">
+
+    <button onclick="getLocation()" style="width:100%; background:gold; margin-bottom:10px;">
+        📍 Use My Location
+    </button>
+
+    <div style="margin:10px 0;">
+        <b>Total: $<span id="total">0</span></b>
+    </div>
+
+    <button class="whatsapp-btn" onclick="sendWhatsAppOrder()">
+        📱 Order via WhatsApp
+    </button>
+
+</div>
+
+<script>
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let deliveryFee = 0;
+
+/* SHOP LOCATION */
+const SHOP_LAT = 0.3476;
+const SHOP_LON = 32.5825;
+
+/* SHOW CART */
+function renderCart(){
+    let cartDiv = document.getElementById("cart");
+    cartDiv.innerHTML = "";
+
+    let total = 0;
+
+    cart.forEach((item, index) => {
+        total += item.price;
+
+        cartDiv.innerHTML += `
+        <div class="cart-item">
+            <div>
+                ${item.name}<br>
+                $${item.price}
+            </div>
+            <button class="remove" onclick="removeItem(${index})">X</button>
+        </div>
+        `;
+    });
+
+    document.getElementById("total").innerText = total + deliveryFee;
+    localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+/* REMOVE ITEM */
+function removeItem(index){
+    cart.splice(index, 1);
+    renderCart();
+}
+
+/* GET LOCATION */
+function getLocation(){
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        alert("GPS not supported");
+    }
+}
+
+/* DISTANCE CALC */
+function getDistance(lat1, lon1, lat2, lon2){
+    const R = 6371;
+    const dLat = (lat2-lat1) * Math.PI/180;
+    const dLon = (lon2-lon1) * Math.PI/180;
+
+    const a =
+        Math.sin(dLat/2)**2 +
+        Math.cos(lat1*Math.PI/180) *
+        Math.cos(lat2*Math.PI/180) *
+        Math.sin(dLon/2)**2;
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+/* LOCATION RESULT */
+function showPosition(position){
+    let lat = position.coords.latitude;
+    let lon = position.coords.longitude;
+
+    document.getElementById("customerAddress").value =
+        `https://www.google.com/maps?q=${lat},${lon}`;
+
+    let distance = getDistance(SHOP_LAT, SHOP_LON, lat, lon);
+
+    if(distance <= 2){
+        deliveryFee = 2000;
+    } else if(distance <= 5){
+        deliveryFee = 4000;
+    } else if(distance <= 10){
+        deliveryFee = 7000;
+    } else {
+        deliveryFee = 10000;
+    }
+
+    alert("Delivery Fee: " + deliveryFee);
+    renderCart();
+}
+
+/* WHATSAPP ORDER */
+function sendWhatsAppOrder(){
+
+    let name = document.getElementById("customerName").value;
+    let phone = document.getElementById("customerPhone").value;
+    let address = document.getElementById("customerAddress").value;
+
+    if(name === "" || phone === "" || address === ""){
+        alert("Fill all details!");
+        return;
+    }
+
+    if(cart.length === 0){
+        alert("Cart is empty!");
+        return;
+    }
+
+    let orderId = "JWL-" + Math.floor(Math.random()*1000000);
+
+    let message = `🛒 NEW ORDER%0A%0A🧾 Order ID: ${orderId}%0A👤 Name: ${name}%0A📱 Phone: ${phone}%0A📍 Address: ${address}%0A%0A`;
+
+    let total = 0;
+
+    cart.forEach(item => {
+        message += `• ${item.name} - $${item.price}%0A`;
+        total += item.price;
+    });
+
+    message += `%0A💰 Products: $${total}%0A🚚 Delivery: $${deliveryFee}%0A💰 TOTAL: $${total + deliveryFee}`;
+
+    let shopNumber = "256701234567";
+
+    window.open(`https://wa.me/${shopNumber}?text=${message}`, "_blank");
+}
+
+renderCart();
+</script>
+
+</body>
+</html>
